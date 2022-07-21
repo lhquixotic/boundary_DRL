@@ -3,7 +3,6 @@ import sys
 from os.path import dirname,abspath
 import copy
 import random
-
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 import gym_carla
@@ -11,12 +10,12 @@ import gym
 import carla
 
 from utilities.data_structures.Config import Config
-from agents.Trainer import Trainer
 import matplotlib.pyplot as plt
 
-
+from agents.Trainer import Trainer
 from agents.DQN_agents.DQN import DQN
 from agents.actor_critic_agents.SAC_Discrete import SAC_Discrete
+from agents.AIf_agents import AIf
 
 
 env_params = {
@@ -34,7 +33,7 @@ env_params = {
 'port': 2000,  # connection port
 'town': 'Town03',  # which town to simulate
 'task_mode': 'random',  # mode of the task, [random, roundabout (only for Town03)]
-'max_time_episode': 1000,  # maximum timesteps per episode
+'max_time_episode': 500,  # maximum timesteps per episode
 'max_waypt': 12,  # maximum number of waypoints
 'obs_range': 32,  # observation range (meter)
 'lidar_bin': 0.125,  # bin size of lidar sensor (meter)
@@ -171,6 +170,6 @@ class CarlaEnvTrainer(Trainer):
         self.results[agent_name] = agent_results
 
 if __name__ == "__main__":
-    AGENTS = [DQN]
+    AGENTS = [AIf]
     trainer =  CarlaEnvTrainer(config,AGENTS)
     trainer.run_games_for_agents()

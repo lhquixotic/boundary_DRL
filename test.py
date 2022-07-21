@@ -41,6 +41,7 @@ def main():
     'boundary_dist' : 12, # if use boundary, boundary dist is the detected dist
     'boundary_size' : 360, # points on the boundary
     'lane_boundary_dist': 12,
+    'no_rendering': False,
   }
 
   # Set gym-carla environment
