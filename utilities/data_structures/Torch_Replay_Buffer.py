@@ -14,7 +14,7 @@ class Torch_Replay_Buffer(object):
 
         self.observations = torch.empty([buffer_size]+[dim for dim in obs_shape],dtype=torch.float32,device=self.device)
         self.actions = torch.empty(buffer_size,dtype=torch.int64,device=self.device)
-        self.rewards = torch.empty(buffer_size,dtype=torch.int8,device=self.device)
+        self.rewards = torch.empty(buffer_size,dtype=torch.int64,device=self.device)
         self.dones = torch.empty(buffer_size,dtype=torch.int8,device=self.device)
         self.next_observations = torch.empty([buffer_size]+[dim for dim in obs_shape],dtype=torch.float32,device=self.device)    
         

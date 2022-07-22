@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from agents.Trainer import Trainer
 from agents.DQN_agents.DQN import DQN
 from agents.actor_critic_agents.SAC_Discrete import SAC_Discrete
-from agents.AIf_agents import AIf
+from agents.AIf_agents.AIf import AIf
 
 
 env_params = {
@@ -48,13 +48,13 @@ env_params = {
 'boundary_dist' : 12, # if use boundary, boundary dist is the detected dist
 'boundary_size' : 360, # points on the boundary
 'lane_boundary_dist' : 12, # lane boundary distance
-'no_rendering': True, # no rendering mode
+'no_rendering': False, # no rendering mode
 }
 
 config = Config()
 config.seed = 1
 config.environment = gym.make('carla-v0', params=env_params)
-config.num_episodes_to_run = 450
+config.num_episodes_to_run = 10
 config.file_to_save_data_results = "results/data_and_graphs/Carla_Env_Results_Data.pkl"
 config.file_to_save_results_graph = "results/data_and_graphs/Carla_Env_Results_Graph.png"
 config.show_solution_score = False
@@ -85,6 +85,17 @@ config.hyperparameters = {
         "batch_norm": False,
         "gradient_clipping_norm": 0.7,
         "learning_iterations": 1,
+        "clip_rewards": False
+    },
+    "AIf_Agents":{
+        "batch_size": 64,
+        "buffer_size": 65536,
+        "tra_lr": 0.001,
+        "pol_lr": 0.001,
+        "val_lr": 0.001,
+        "gamma" : 1.0,
+        "beta" : 0.99,
+        "update_every_n_steps": 25,
         "clip_rewards": False
     },
     "Actor_Critic_Agents":  {

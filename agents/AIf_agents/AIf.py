@@ -1,6 +1,7 @@
 from collections import Counter
 from distutils.command.config import config
 from email import policy
+from time import sleep
 from tracemalloc import start
 from turtle import forward
 
@@ -53,9 +54,12 @@ class AIf(Base_Agent):
         Base_Agent.__init__(self,config)
         
         # Initialize the env params
-        self.observation_shape = self.environment.observation_space.shape
+        # self.observation_shape = self.environment.observation_space.shape
+        # print("shape:{}".format(self.observation_shape))
+        # self.observation_size = np.prod(self.observation_shape)
+        # self.state_size = self.observation_size
+        self.observation_shape = [self.state_size]
         self.observation_size = int(np.prod(self.observation_shape))
-        self.state_size = self.observation_size
         self.batch_size = self.hyperparameters["batch_size"]
 
         # Initialize the replay memory
@@ -123,7 +127,7 @@ class AIf(Base_Agent):
         # action selection
         # self.policy_network.eval()
         with torch.no_grad():
-            policy = self.policy_network(state)
+            policy = torch.clamp(self.policy_network(state),1e-4,1)
         # self.policy_network.train()
         self.logger.info("Policy network score {}.".format(policy))
         action = torch.multinomial(policy,1)
@@ -314,6 +318,7 @@ class AIf(Base_Agent):
         for key in default_hyperparameters:
             if key not in hyperparameters.keys():
                 hyperparameters[key] = default_hyperparameters[key]
+        print("output_dim:{}".format(output_dim))
 
         return NN(input_dim=input_dim, layers_info=layers_info+[output_dim],
                   output_activation=hyperparameters["final_layer_activation"],

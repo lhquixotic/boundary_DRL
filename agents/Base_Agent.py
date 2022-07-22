@@ -171,7 +171,7 @@ class Base_Agent(object):
         self.episode_achieved_goals = []
         self.episode_observations = []
         if "exploration_strategy" in self.__dict__.keys(): self.exploration_strategy.reset()
-        self.logger.info("Reseting game -- New start state {}".format(self.state))
+        # self.logger.info("Reseting game -- New start state {}".format(self.state))
 
     def track_episodes_data(self):
         """Saves the data from the recent episodes"""
