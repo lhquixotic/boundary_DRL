@@ -19,6 +19,7 @@ class DQN(Base_Agent):
         self.q_network_optimizer = optim.Adam(self.q_network_local.parameters(),
                                               lr=self.hyperparameters["learning_rate"], eps=1e-4)
         self.exploration_strategy = Epsilon_Greedy_Exploration(config)
+        print("input_size:{},action_size:{}.".format(self.state_size,self.action_size))
 
     def reset_game(self):
         super(DQN, self).reset_game()

@@ -25,8 +25,10 @@ env_params = {
 'max_past_step': 1,  # the number of past steps to draw
 'dt': 0.1,  # time interval between two frames
 'discrete': True,  # whether to use discrete control space
-'discrete_acc': [-3.0, 0.0, 3.0],  # discrete value of accelerations
-'discrete_steer': [-0.2, 0.0, 0.2],  # discrete value of steering angles
+# 'discrete_acc': [-3.0, 0.0, 3.0],  # discrete value of accelerations
+# 'discrete_steer': [-0.2, 0.0, 0.2],  # discrete value of steering angles
+'discrete_acc': [-3.0, 0.0,1.0,2.0],  # discrete value of accelerations
+'discrete_steer': [-0.2, -0.15,-0.1,-0.05, 0.0,0.05, 0.1,0.15, 0.2],  # discrete value of steering angles
 'continuous_accel_range': [-3.0, 3.0],  # continuous acceleration range
 'continuous_steer_range': [-0.3, 0.3],  # continuous steering angle range
 'ego_vehicle_filter': 'vehicle.lincoln*',  # filter for defining ego vehicle
@@ -48,13 +50,13 @@ env_params = {
 'boundary_dist' : 12, # if use boundary, boundary dist is the detected dist
 'boundary_size' : 360, # points on the boundary
 'lane_boundary_dist' : 12, # lane boundary distance
-'no_rendering': False, # no rendering mode
+'no_rendering': True, # no rendering mode
 }
 
 config = Config()
 config.seed = 1
 config.environment = gym.make('carla-v0', params=env_params)
-config.num_episodes_to_run = 10
+config.num_episodes_to_run = 450
 config.file_to_save_data_results = "results/data_and_graphs/Carla_Env_Results_Data.pkl"
 config.file_to_save_results_graph = "results/data_and_graphs/Carla_Env_Results_Graph.png"
 config.show_solution_score = False
@@ -70,10 +72,10 @@ config.save_model = False
 config.hyperparameters = {
     "DQN_Agents": {
         "learning_rate": 0.001,
-        "batch_size": 256,
+        "batch_size": 32,
         "buffer_size": 40000,
-        "epsilon": 1.0,
-        "epsilon_decay_rate_denominator": 1,
+        "epsilon": 0.1,
+        "epsilon_decay_rate_denominator": 0.999,
         "discount_rate": 0.99,
         "tau": 0.01,
         "alpha_prioritised_replay": 0.6,
@@ -181,6 +183,6 @@ class CarlaEnvTrainer(Trainer):
         self.results[agent_name] = agent_results
 
 if __name__ == "__main__":
-    AGENTS = [AIf]
+    AGENTS = [DQN]
     trainer =  CarlaEnvTrainer(config,AGENTS)
     trainer.run_games_for_agents()

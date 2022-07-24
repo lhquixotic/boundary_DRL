@@ -665,7 +665,8 @@ class CarlaEnv(gym.Env):
 
     # output flatten boundary
     if self.use_boundary:
-      obs = np.hstack((p_b.flatten(),w_p.flatten(),np.array([speed]).flatten()))
+      # print(w_p,w_p.flatten())
+      obs = np.hstack((p_b.flatten()[180:],np.array(w_p[5,1]).flatten(),np.array([speed]).flatten()))
 
     return obs
 

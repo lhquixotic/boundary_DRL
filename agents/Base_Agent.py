@@ -273,7 +273,7 @@ class Base_Agent(object):
     def save_experience(self, memory=None, experience=None):
         """Saves the recent experience to the memory buffer"""
         if memory is None: memory = self.memory
-        if experience is None: experience = self.state, self.action, self.reward, self.next_state, self.done
+        if experience is None: experience = self.state, self.action, self.reward/100.0, self.next_state, self.done
         memory.add_experience(*experience)
 
     def take_optimisation_step(self, optimizer, network, loss, clipping_norm=None, retain_graph=False):

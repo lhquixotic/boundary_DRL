@@ -14,7 +14,7 @@ class Torch_Replay_Buffer(object):
 
         self.observations = torch.empty([buffer_size]+[dim for dim in obs_shape],dtype=torch.float32,device=self.device)
         self.actions = torch.empty(buffer_size,dtype=torch.int64,device=self.device)
-        self.rewards = torch.empty(buffer_size,dtype=torch.int64,device=self.device)
+        self.rewards = torch.empty(buffer_size,dtype=torch.float32,device=self.device)
         self.dones = torch.empty(buffer_size,dtype=torch.int8,device=self.device)
         self.next_observations = torch.empty([buffer_size]+[dim for dim in obs_shape],dtype=torch.float32,device=self.device)    
         
@@ -60,4 +60,50 @@ class Torch_Replay_Buffer(object):
         next_obs = self.next_observations[np.array(random_index)]
         dones = self.dones[np.array(random_index)]
         return obs, actions, rewards, next_obs, dones
+    
+    def sample_seq(self, seq_len, num_experiences = None):
+        """Sample sequences experience from the replay buffer"""
+        def rearrange_tensor(input_tensor):
+            final_tensor = torch.empty(input_tensor.size())
+            current_position = self.push_count % self.buffer_size
+            print(current_position)
+            final_tensor[-current_position:] = input_tensor[:current_position]
+            final_tensor[:self.buffer_size-current_position] = input_tensor[-self.buffer_size+current_position:]
+            return final_tensor
+        # if the number experience is not given
+        if num_experiences is not None: batch_size = num_experiences
+        else: batch_size = self.batch_size
+        # compare push count and buffer size
+        if self.push_count > self.buffer_size:
+            ## rearrange the replay buffer
+            observations = rearrange_tensor(self.observations)
+            actions = rearrange_tensor(self.actions)
+            rewards = rearrange_tensor(self.rewards)
+            next_observations = rearrange_tensor(self.next_observations)
+            dones = rearrange_tensor(self.dones)
+        else: # push count is smaller than buffer size
+            ## split the memory into sequence
+            observations = self.observations[:self.push_count]
+            actions = self.actions[:self.push_count]
+            rewards = self.rewards[:self.push_count]
+            next_observations = self.next_observations[:self.push_count]
+            dones = self.dones[:self.push_count]
+        
+        valid_range = min(self.push_count,self.buffer_size)
+        max_seq_num = int(valid_range/seq_len)
+        valid_range = max_seq_num * seq_len
+        observations = observations[:valid_range].view((max_seq_num,seq_len)+self.obs_shape)
+        actions = actions[:valid_range].view((max_seq_num,seq_len,1))
+        rewards = rewards[:valid_range].view((max_seq_num,seq_len,1))
+        dones = dones[:valid_range].view((max_seq_num,seq_len,1))
+        next_observations = next_observations[:valid_range].view((max_seq_num,seq_len)+self.obs_shape)
 
+        # randomly sampe
+        random_index = random.sample(range(max_seq_num),k=batch_size)
+        obs_seqs = observations[np.array(random_index)].to(self.device) # shape: (1,seq_len,(obs shape))
+        action_seqs = actions[np.array(random_index)].to(self.device)
+        reward_seqs = rewards[np.array(random_index)].to(self.device)
+        next_obs_seqs = next_observations[np.array(random_index)].to(self.device)
+        done_seq = dones[np.array(random_index)].to(self.device)
+
+        return obs_seqs,action_seqs,reward_seqs,next_obs_seqs,done_seq
