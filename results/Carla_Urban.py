@@ -16,6 +16,7 @@ from agents.Trainer import Trainer
 from agents.DQN_agents.DQN import DQN
 from agents.actor_critic_agents.SAC_Discrete import SAC_Discrete
 from agents.AIf_agents.AIf import AIf
+from agents.DQN_agents.DRQN import DRQN
 
 
 env_params = {
@@ -63,11 +64,11 @@ config.show_solution_score = False
 config.visualise_individual_results = False
 config.visualise_overall_agent_results = True
 config.standard_deviation_results = 1.0
-config.runs_per_agent = 3
+config.runs_per_agent = 1
 config.use_GPU = True
 config.overwrite_existing_results_file = False
 config.randomise_random_seed = True
-config.save_model = False
+config.save_model = True
 
 config.hyperparameters = {
     "DQN_Agents": {
@@ -82,7 +83,7 @@ config.hyperparameters = {
         "beta_prioritised_replay": 0.1,
         "incremental_td_error": 1e-8,
         "update_every_n_steps": 25, 
-        "linear_hidden_units": [64,32],
+        "linear_hidden_units": [128,64],
         "final_layer_activation": "None",
         "batch_norm": False,
         "gradient_clipping_norm": 0.7,
@@ -183,6 +184,6 @@ class CarlaEnvTrainer(Trainer):
         self.results[agent_name] = agent_results
 
 if __name__ == "__main__":
-    AGENTS = [DQN]
+    AGENTS = [DRQN]
     trainer =  CarlaEnvTrainer(config,AGENTS)
     trainer.run_games_for_agents()

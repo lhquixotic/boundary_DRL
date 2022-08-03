@@ -23,6 +23,7 @@ class Torch_Replay_Buffer(object):
         # self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
         self.push_count = 0
+        self.obs_shape = obs_shape
 
     def position(self):
         return self.push_count % self.buffer_size

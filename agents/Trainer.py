@@ -22,6 +22,7 @@ class Trainer(object):
         """Creates a dictionary that maps an agent to their wider agent group"""
         agent_to_agent_group_dictionary = {
             "DQN": "DQN_Agents",
+            "DRQN": "DQN_Agents",
             "DQN-HER": "DQN_Agents",
             "DDQN": "DQN_Agents",
             "DDQN with Prioritised Replay": "DQN_Agents",
@@ -69,7 +70,8 @@ class Trainer(object):
             "SAC": "#1C2833",
             "DIAYN": "#F322CD",
             "HRL": "#0E0F0F",
-            "AIf":"#056666"
+            "AIf":"#056666",
+            "DRQN": "#F03456"
         }
         return agent_to_color_dictionary
 

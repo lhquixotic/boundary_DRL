@@ -1,7 +1,6 @@
 import random
 
 import numpy as np
-from drqn import train
 
 import torch
 import torch.nn as nn
@@ -21,23 +20,19 @@ class QRNN_net(nn.Module):
         super(QRNN_net,self).__init__()
         self.state_space = input_dim
         self.aciton_space = output_dim
-        self.hidden_space = layers_info[0]
-
-        self.Linear1 = nn.Linear(self.state_space,64)
+        self.hidden_space = layers_info[-1]
+        
+        self.Linear1 = nn.Linear(self.state_space,128)
+        self.Linear11 = nn.Linear(128,64)
         self.lstm = nn.LSTM(64,64,batch_first=True)
         self.Linear2 = nn.Linear(64,self.aciton_space)
         
     def forward(self,x,h,c):
         x = F.relu(self.Linear1(x))
+        x = F.relu(self.Linear11(x))
         x, (new_h,new_c) = self.lstm(x,(h,c))
         x = self.Linear2(x)
         return x,new_h,new_c
-
-    # def init_hidden_state(self,batch_size,training=None):
-    #     if training is True:
-    #         return torch.zeros([1,batch_size,self.hidden_layers[-1]]), torch.zeros([1,batch_size,self.hidden_layers[-1]])
-    #     else:
-    #         return torch.zeros([1,1,self.hidden_layers[-1]]),torch.zeros([1,1,self.hidden_layers[-1]])
 
     def init_hidden_state(self, batch_size, training=None):
 
@@ -63,7 +58,8 @@ class DRQN(DQN):
 
         # use torch replay buffer
         # print("obs_shape is {}".format(self.environment.observation_space.shape))
-        self.memory = Torch_Replay_Buffer(self.hyperparameters["buffer_size"],self.hyperparameters["batch_size"],self.environment.observation_space.shape,self.device)
+        print(self.environment.observation_space)
+        self.memory = Torch_Replay_Buffer(self.hyperparameters["buffer_size"],self.hyperparameters["batch_size"],(self.state_size,),self.device)
         self.seq_len = 10
         self.epsilon = self.hyperparameters['epsilon']
         self.decay = self.hyperparameters['epsilon_decay_rate_denominator']
