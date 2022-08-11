@@ -17,6 +17,9 @@ from exploration_strategies.Epsilon_Greedy_Exploration import Epsilon_Greedy_Exp
 from utilities.data_structures.Replay_Buffer import Replay_Buffer
 from utilities.data_structures.Torch_Replay_Buffer import Torch_Replay_Buffer
 
+from torch.distributions.categorical import Categorical
+
+import wandb
 
 '''
 config.hyperparameters = {
@@ -74,14 +77,14 @@ class AIf(Base_Agent):
         self.transition_optimizer = optim.Adam(self.transition_network.parameters(),
                                                 lr = self.hyperparameters["tra_lr"])
         policy_params = {"final_layer_activation":"SOFTMAX"}       
-        self.policy_network = self.create_forward_NN(self.observation_size,self.action_size,[64],hyperparameters=policy_params)
+        self.policy_network = self.create_forward_NN(self.observation_size,self.action_size,[128,64],hyperparameters=policy_params)
         self.policy_optimizer = optim.Adam(self.policy_network.parameters(),
                                                 lr = self.hyperparameters["pol_lr"])
-        self.value_network = self.create_forward_NN(self.observation_size, self.action_size,[64])
+        self.value_network = self.create_forward_NN(self.observation_size, self.action_size,[128,64])
         self.value_optimizer = optim.Adam(self.value_network.parameters(),
                                                 lr = self.hyperparameters["val_lr"])
 
-        self.target_network = self.create_forward_NN(self.observation_size, self.action_size,[64])
+        self.target_network = self.create_forward_NN(self.observation_size, self.action_size,[128,64])
         self.target_network.load_state_dict(self.value_network.state_dict())
 
         self.logger.info("Transition network {}.".format(self.transition_network))
@@ -97,6 +100,8 @@ class AIf(Base_Agent):
         self.reward_indices = [1]
         self.done_indices = [0]
         self.max_n_indices = max(max(self.obs_indices, self.action_indices, self.reward_indices, self.done_indices))+1
+
+        self.train_metrics = {}
 
     def reset_game(self):
         super(AIf,self).reset_game()
@@ -116,8 +121,12 @@ class AIf(Base_Agent):
             self.save_experience()
             self.state = self.next_state
             self.global_step_number += 1
+        
+        '''wandb log'''
+        self.train_metrics["train_rewards"] = self.total_episode_score_so_far
+        wandb.log(self.train_metrics,step=self.global_step_number)
         self.episode_number += 1
-        self.full_episode_VFEs.append(self.VFE)
+        # self.full_episode_VFEs.append(self.VFE)
             
     def pick_action(self,state=None):
         if state is None: state = self.state
@@ -130,7 +139,8 @@ class AIf(Base_Agent):
             policy = torch.clamp(self.policy_network(state),1e-4,1)
         # self.policy_network.train()
         self.logger.info("Policy network score {}.".format(policy))
-        action = torch.multinomial(policy,1)
+        # action = torch.multinomial(policy,1)
+        action = Categorical(torch.softmax(policy,dim=1)).sample()
         # self.logger.info("Action chosen {} -- policy network score {}.".format(action,policy))
         return action
         
@@ -156,6 +166,7 @@ class AIf(Base_Agent):
                                                         action_batch_t1,reward_batch_t1,
                                                         done_batch_t2, pred_error_batch_t0t1)
         
+        
         # Compute the variational free energy:
         VFE = self.compute_VFE(obs_batch_t1,pred_error_batch_t0t1)
 
@@ -169,6 +180,9 @@ class AIf(Base_Agent):
         value_network_loss.backward()
 
         self.VFE = VFE.item()
+        self.train_metrics["value_network_loss"] = value_network_loss.item()
+        self.train_metrics["vfe"] = VFE.item()
+
         # self.logger.info("Value network loss -- {}, VFE -- {}".format(value_network_loss.item(),VFE.item()))
         # self.logger.info("VFE -- {}".format(VFE.item()))
         # self.log_gradient_and_weight_information(self.value_network,self.value_optimizer)

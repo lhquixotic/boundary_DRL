@@ -18,6 +18,8 @@ from agents.actor_critic_agents.SAC_Discrete import SAC_Discrete
 from agents.AIf_agents.AIf import AIf
 from agents.DQN_agents.DRQN import DRQN
 
+import wandb
+
 
 env_params = {
 'number_of_vehicles': 100,
@@ -158,32 +160,36 @@ class CarlaEnvTrainer(Trainer):
         agent_name = agent_class.agent_name
         agent_group = self.agent_to_agent_group[agent_name]
         agent_round = 1
-        for run in range(self.config.runs_per_agent):
-            agent_config = self.config
-            # if self.environment_has_changeable_goals(agent_config.environment) and self.agent_cant_handle_changeable_goals_without_flattening(agent_name):
-            #     print("Flattening changeable-goal environment for agent {}".format(agent_name))
-            #     agent_config.environment = gym.wrappers.FlattenDictWrapper(agent_config.environment,
-                                                                        #    dict_keys=["observation", "desired_goal"])
+        with wandb.init(project="carla env using active inference", config=dict(**env_params,**config.hyperparameters)):
+            for run in range(self.config.runs_per_agent):
+                agent_config = self.config
+                # if self.environment_has_changeable_goals(agent_config.environment) and self.agent_cant_handle_changeable_goals_without_flattening(agent_name):
+                #     print("Flattening changeable-goal environment for agent {}".format(agent_name))
+                #     agent_config.environment = gym.wrappers.FlattenDictWrapper(agent_config.environment,
+                                                                            #    dict_keys=["observation", "desired_goal"])
 
-            if self.config.randomise_random_seed: agent_config.seed = random.randint(0, 2**32 - 2)
-            if run == 0:agent_config.hyperparameters = agent_config.hyperparameters[agent_group]
-            print("AGENT NAME: {}".format(agent_name))
-            print("\033[1m" + "{}.{}: {}".format(agent_number, agent_round, agent_name) + "\033[0m", flush=True)
-            agent = agent_class(agent_config)
-            self.environment_name = agent.environment_title
-            print(agent.hyperparameters)
-            print("RANDOM SEED " , agent_config.seed)
-            game_scores, rolling_scores, time_taken = agent.run_n_episodes()
-            print("Time taken: {}".format(time_taken), flush=True)
-            self.print_two_empty_lines()
-            agent_results.append([game_scores, rolling_scores, len(rolling_scores), -1 * max(rolling_scores), time_taken])
-            if self.config.visualise_individual_results:
-                self.visualise_overall_agent_results([rolling_scores], agent_name, show_each_run=True)
-                plt.show()
-            agent_round += 1
+                if self.config.randomise_random_seed: agent_config.seed = random.randint(0, 2**32 - 2)
+                if run == 0:agent_config.hyperparameters = agent_config.hyperparameters[agent_group]
+                print("AGENT NAME: {}".format(agent_name))
+                print("\033[1m" + "{}.{}: {}".format(agent_number, agent_round, agent_name) + "\033[0m", flush=True)
+                agent = agent_class(agent_config)
+                self.environment_name = agent.environment_title
+                print(agent.hyperparameters)
+                print("RANDOM SEED " , agent_config.seed)
+                game_scores, rolling_scores, time_taken = agent.run_n_episodes()
+                print("Time taken: {}".format(time_taken), flush=True)
+                self.print_two_empty_lines()
+                agent_results.append([game_scores, rolling_scores, len(rolling_scores), -1 * max(rolling_scores), time_taken])
+                if self.config.visualise_individual_results:
+                    self.visualise_overall_agent_results([rolling_scores], agent_name, show_each_run=True)
+                    plt.show()
+                agent_round += 1
+                
+
         self.results[agent_name] = agent_results
 
 if __name__ == "__main__":
-    AGENTS = [DRQN]
+    AGENTS = [AIf]
     trainer =  CarlaEnvTrainer(config,AGENTS)
+    wandb.login()
     trainer.run_games_for_agents()

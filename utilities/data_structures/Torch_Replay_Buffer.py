@@ -54,7 +54,7 @@ class Torch_Replay_Buffer(object):
         if num_experiences is not None: batch_size = num_experiences
         else: batch_size = self.batch_size
         pick_range = min(self.push_count,self.buffer_size)
-        random_index = random.sample(range(pick_range,k=batch_size))
+        random_index = random.sample(range(pick_range),k=batch_size)
         obs = self.observations[np.array(random_index)]
         actions = self.actions[np.array(random_index)]
         rewards = self.rewards[np.array(random_index)]
